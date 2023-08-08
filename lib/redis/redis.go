@@ -17,14 +17,14 @@ type Conn struct {
 	ctx    context.Context
 }
 
-func New(addr string, password string) *Conn {
+func New(ctx context.Context, addr string, password string) *Conn {
 	c := &Conn{}
 	c.client = rdb.NewClient(&rdb.Options{
 		Addr:       addr,
 		MaxRetries: 3,
 		Password:   password,
 	})
-	c.ctx = context.Background()
+	c.ctx = ctx
 	return c
 }
 
@@ -40,7 +40,7 @@ func (rc *Conn) SetAndExpire(key string, value interface{}, expire time.Duration
 	return rc.client.Set(rc.ctx, key, value, expire).Err()
 }
 
-func (rc *Conn) GetString(key string) (string, error) {
+func (rc *Conn) Get(key string) (string, error) {
 	val, err := rc.client.Get(rc.ctx, key).Result()
 	if err == rdb.Nil {
 		return "", nil
@@ -63,10 +63,10 @@ func (rc *Conn) LLen(key string) (int64, error) {
 	return val, err
 }
 
-func (rc *Conn) LRange(key string, start, stop int64) ([]string, error) [
-	val, err := rc.client.LRange(key, start, stop).Result()
-	if err == rd.Nil {
+func (rc *Conn) LRange(key string, start, stop int64) ([]string, error) {
+	val, err := rc.client.LRange(rc.ctx, key, start, stop).Result()
+	if err == rdb.Nil {
 		return nil, nil
 	}
 	return val, err
-]
+}
