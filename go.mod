@@ -37,6 +37,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gin-gonic/gin v1.9.1
+	github.com/gocraft/dbr v0.0.0-20190714181702-8114670a83bd
 	github.com/gocraft/dbr/v2 v2.7.5
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/opentracing/opentracing-go v1.2.0
