@@ -170,7 +170,7 @@ func (imHttp *IMHttp) UseGin(handlers ...gin.HandlerFunc) {
 
 // Use Use
 func (imHttp *IMHttp) Use(handlers ...HandlerFunc) {
-	imHttp.engine.Use(l.handlersToGinHandleFuncs(handlers)...)
+	imHttp.engine.Use(imHttp.handlersToGinHandleFuncs(handlers)...)
 }
 
 // ServeHTTP ServeHTTP
