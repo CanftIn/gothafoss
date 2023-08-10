@@ -1,24 +1,31 @@
 package server
 
 import (
-	"context"
+	"net/http"
+	"os"
+	"strings"
 
-	"github.com/CanftIn/gothafoss/lib/im/http"
+	"github.com/CanftIn/gothafoss/lib/im/config"
+	"github.com/CanftIn/gothafoss/lib/im/imhttp"
+	"github.com/CanftIn/gothafoss/lib/im/module"
+	"github.com/CanftIn/gothafoss/lib/im/register"
 	"github.com/CanftIn/gothafoss/lib/log"
+
+	"github.com/unrolled/secure"
 )
 
 type Server struct {
-	ctx      *context.Context
-	imHttp   *http.IMHttp
+	ctx      *config.Context
+	imHttp   *imhttp.IMHttp
 	addr     string
 	sslAddr  string
 	grpcAddr string
 	log.TLog
 }
 
-func New(ctx *context.Context) *Server {
-	imHttp := http.New()
-	imHttp.Use(http.CORSMiddleware())
+func New(ctx *config.Context) *Server {
+	imHttp := imhttp.New()
+	imHttp.Use(imhttp.CORSMiddleware())
 	s := &Server{
 		ctx:      ctx,
 		imHttp:   imHttp,
@@ -35,8 +42,87 @@ func (s *Server) Init() error {
 
 func (s *Server) run(sslAddr string, addr ...string) error {
 	s.imHttp.Static("/web", "./asserts/web")
-	s.imHttp.Any("/v1/ping", func(c *http.Context) {
+	s.imHttp.Any("/v1/ping", func(c *imhttp.Context) {
 		c.ResponseOK()
 	})
 
+	s.imHttp.Any("/swagger/:module", func(c *imhttp.Context) {
+		m := c.Param("module")
+		module := register.GetModuleByName(m, s.ctx)
+		if strings.TrimSpace(module.Swagger) == "" {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		c.String(http.StatusOK, module.Swagger)
+
+	})
+
+	if len(addr) != 0 {
+		if sslAddr != "" {
+			go func() {
+				err := s.imHttp.Run(addr...)
+				if err != nil {
+					panic(err)
+				}
+			}()
+		} else {
+			err := s.imHttp.Run(addr...)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
+	// https 服务
+	if sslAddr != "" {
+		s.imHttp.Use(TlsHandler(sslAddr))
+		currDir, _ := os.Getwd()
+		return s.imHttp.RunTLS(sslAddr, currDir+"/assets/ssl/ssl.pem", currDir+"/assets/ssl/ssl.key")
+	}
+
+	return nil
+}
+
+func (s *Server) Start() error {
+	go func() {
+		err := s.run(s.sslAddr, s.addr)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	err := module.Start(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Server) Stop() error {
+
+	return module.Stop(s.ctx)
+}
+
+func TlsHandler(sslAddr string) imhttp.HandlerFunc {
+	return func(c *imhttp.Context) {
+		secureMiddleware := secure.New(secure.Options{
+			SSLRedirect: true,
+			SSLHost:     sslAddr,
+		})
+		err := secureMiddleware.Process(c.Writer, c.Request)
+
+		// If there was an error, do not continue.
+		if err != nil {
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// GetRoute 获取路由
+func (s *Server) GetRoute() *imhttp.IMHttp {
+	return s.imHttp
 }

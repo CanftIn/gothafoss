@@ -1,4 +1,4 @@
-package event
+package imevent
 
 import "github.com/gocraft/dbr/v2"
 

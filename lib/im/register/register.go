@@ -5,13 +5,13 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/CanftIn/gothafoss/lib/im/http"
+	"github.com/CanftIn/gothafoss/lib/im/imhttp"
 	"github.com/CanftIn/gothafoss/lib/im/model"
 )
 
 // APIRouter api路由者
 type APIRouter interface {
-	Route(r *http.IMHttp)
+	Route(r *imhttp.IMHttp)
 }
 
 // var apiRoutes = make([]APIRouter, 0)

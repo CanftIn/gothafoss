@@ -1,11 +1,13 @@
-package http
+package imhttp
 
 import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 
+	"github.com/CanftIn/gothafoss/lib/cache"
 	"github.com/CanftIn/gothafoss/lib/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -189,6 +191,79 @@ func (imHttp *IMHttp) handlersToGinHandleFuncs(handlers []HandlerFunc) []gin.Han
 		newHandlers = append(newHandlers, imHttp.IMHttpHandler(handler))
 	}
 	return newHandlers
+}
+
+// AuthMiddleware 认证中间件
+func (imHttp *IMHttp) AuthMiddleware(cache cache.Cache, tokenPrefix string) HandlerFunc {
+
+	return func(c *Context) {
+		token := c.GetHeader("token")
+		if token == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"msg": "token不能为空，请先登录！",
+			})
+			return
+		}
+		uidAndName := GetLoginUID(token, tokenPrefix, cache)
+		if strings.TrimSpace(uidAndName) == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"msg": "请先登录！",
+			})
+			return
+		}
+		uidAndNames := strings.Split(uidAndName, "@")
+		if len(uidAndNames) < 2 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"msg": "token有误！",
+			})
+			return
+		}
+		c.Set("uid", uidAndNames[0])
+		c.Set("name", uidAndNames[1])
+		if len(uidAndNames) > 2 {
+			c.Set("role", uidAndNames[2])
+		}
+		c.Next()
+	}
+}
+
+// GetLoginUID GetLoginUID
+func GetLoginUID(token string, tokenPrefix string, cache cache.Cache) string {
+	uid, err := cache.Get(tokenPrefix + token)
+	if err != nil {
+		return ""
+	}
+	return uid
+}
+
+// RouterGroup RouterGroup
+type RouterGroup struct {
+	*gin.RouterGroup
+	L *IMHttp
+}
+
+func newRouterGroup(g *gin.RouterGroup, l *IMHttp) *RouterGroup {
+	return &RouterGroup{RouterGroup: g, L: l}
+}
+
+// POST POST
+func (r *RouterGroup) POST(relativePath string, handlers ...HandlerFunc) {
+	r.RouterGroup.POST(relativePath, r.L.handlersToGinHandleFuncs(handlers)...)
+}
+
+// GET GET
+func (r *RouterGroup) GET(relativePath string, handlers ...HandlerFunc) {
+	r.RouterGroup.GET(relativePath, r.L.handlersToGinHandleFuncs(handlers)...)
+}
+
+// DELETE DELETE
+func (r *RouterGroup) DELETE(relativePath string, handlers ...HandlerFunc) {
+	r.RouterGroup.DELETE(relativePath, r.L.handlersToGinHandleFuncs(handlers)...)
+}
+
+// PUT PUT
+func (r *RouterGroup) PUT(relativePath string, handlers ...HandlerFunc) {
+	r.RouterGroup.PUT(relativePath, r.L.handlersToGinHandleFuncs(handlers)...)
 }
 
 // CORSMiddleware 跨域

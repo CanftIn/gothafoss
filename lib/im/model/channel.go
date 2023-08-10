@@ -1,6 +1,6 @@
 package model
 
-import "github.com/CanftIn/gothafoss/lib/im/msg"
+import "github.com/CanftIn/gothafoss/lib/im/config"
 
 type ChannelResp struct {
 	Channel struct {
@@ -11,17 +11,17 @@ type ChannelResp struct {
 		ChannelID   string `json:"channel_id"`
 		ChannelType uint8  `json:"channel_type"`
 	} `json:"parent_channel,omitempty"`
-	Username    string         `json:"username,omitempty"` // 频道唯一标识（目前只有机器人有用到）
-	Name        string         `json:"name"`               // 频道名称
-	Logo        string         `json:"logo"`               // 频道logo
-	Remark      string         `json:"remark"`             // 频道备注
-	Status      int            `json:"status"`             //  频道状态 0.正常 1.正常  2.黑名单
-	Online      int            `json:"online"`             // 是否在线
-	LastOffline int64          `json:"last_offline"`       // 最后一次离线
-	DeviceFlag  msg.DeviceFlag `json:"device_flag"`        // 设备标记
-	Receipt     int            `json:"receipt"`            // 消息是否回执
-	Robot       int            `json:"robot"`              // 是否是机器人
-	Category    string         `json:"category"`           // 频道类别
+	Username    string            `json:"username,omitempty"` // 频道唯一标识（目前只有机器人有用到）
+	Name        string            `json:"name"`               // 频道名称
+	Logo        string            `json:"logo"`               // 频道logo
+	Remark      string            `json:"remark"`             // 频道备注
+	Status      int               `json:"status"`             //  频道状态 0.正常 1.正常  2.黑名单
+	Online      int               `json:"online"`             // 是否在线
+	LastOffline int64             `json:"last_offline"`       // 最后一次离线
+	DeviceFlag  config.DeviceFlag `json:"device_flag"`        // 设备标记
+	Receipt     int               `json:"receipt"`            // 消息是否回执
+	Robot       int               `json:"robot"`              // 是否是机器人
+	Category    string            `json:"category"`           // 频道类别
 	// 设置
 	Stick    int `json:"stick"`     // 是否置顶
 	Mute     int `json:"mute"`      // 是否免打扰

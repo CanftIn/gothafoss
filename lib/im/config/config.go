@@ -54,7 +54,7 @@ type Config struct {
 	GRPCAddr                    string // grpc的通信地址 （建议内网通信）
 	SSLAddr                     string // ssl 监听地址
 	MessageSaveAcrossDevice     bool   // 消息是否跨设备保存（换设备登录消息是否还能同步到老消息）
-	WelcomeMessage              string //登录注册欢迎语
+	WelcomeMessage              string // 登录注册欢迎语
 	PhoneSearchOff              bool   // 是否关闭手机号搜索
 	OnlineStatusOn              bool   // 是否开启在线状态显示
 	GroupUpgradeWhenMemberCount int    // 当成员数量大于此配置时 自动升级为超级群 默认为 1000
@@ -68,12 +68,14 @@ type Config struct {
 		APIBaseURL  string // api的基地址 如果没有配置默认未 BaseURL + /v1
 		WebLoginURL string // web登录地址
 	}
+
 	// ---------- 日志配置 ----------
 	Logger struct {
 		Dir     string // 日志存储目录
 		Level   zapcore.Level
 		LineNum bool // 是否显示代码行数
 	}
+
 	// ---------- db相关配置 ----------
 	DB struct {
 		MySQLAddr          string // mysql的连接信息
@@ -81,6 +83,11 @@ type Config struct {
 		RedisAddr          string // redis地址
 		RedisPass          string // redis密码
 		AsynctaskRedisAddr string // 异步任务的redis地址 不写默认为RedisAddr的地址
+	}
+
+	// ---------- 分布式配置 ----------
+	Cluster struct {
+		NodeID int //  节点ID 节点ID需要小于1024
 	}
 
 	// ---------- 缓存配置 ----------
@@ -94,18 +101,80 @@ type Config struct {
 		TokenExpire                 time.Duration // token失效时间
 		NameCacheExpire             time.Duration // 名字缓存过期时间
 	}
+
 	// ---------- 系统账户设置 ----------
 	Account struct {
-		SystemUID       string //系统账号uid
+		SystemUID       string // 系统账号uid
 		FileHelperUID   string // 文件助手uid
-		SystemGroupID   string //系统群ID 需求在app_config表里设置new_user_join_system_group为1才有效
+		SystemGroupID   string // 系统群ID 需求在app_config表里设置new_user_join_system_group为1才有效
 		SystemGroupName string // 系统群的名字
-		AdminUID        string //系统管理员账号
+		AdminUID        string // 系统管理员账号
+	}
+
+	// ---------- 文件服务 ----------
+	FileService FileService   // 文件服务
+	OSS         OSSConfig     // 阿里云oss配置
+	Minio       MinioConfig   // minio配置
+	Seaweed     SeaweedConfig // seaweedfs配置
+
+	// ---------- 短信运营商 ----------
+	SMSCode                string // 模拟的短信验证码
+	SMSProvider            SMSProvider
+	UniSMS                 UnismsConfig                 // unisms https://unisms.apistd.com/
+	AliyunSMS              AliyunSMSConfig              // aliyun sms
+	AliyunInternationalSMS AliyunInternationalSMSConfig // 阿里云国际短信
+
+	// ---------- GothIM ----------
+	GothIM struct {
+		APIURL       string // im基地址
+		ManagerToken string // im的管理者配置了就需要填写，没配置就不需要
+	}
+
+	// ---------- 头像 ----------
+	Avatar struct {
+		Default        string // 默认头像
+		DefaultCount   int    // 默认头像数量
+		Partition      int    // 头像分区数量
+		DefaultBaseURL string // 默认头像的基地址
+	}
+
+	// ---------- 短编号 ----------
+	ShortNo struct {
+		NumOn   bool // 是否开启数字短编号
+		NumLen  int  // 数字短编号长度
+		EditOff bool // 是否关闭短编号编辑
+	}
+
+	// ---------- robot ----------
+	Robot struct {
+		MessageExpire      time.Duration // 消息过期时间
+		InlineQueryTimeout time.Duration // inlineQuery事件过期时间
+		EventPoolSize      int64         // 机器人事件池大小
+	}
+
+	// ---------- github ----------
+	Github struct {
+		OAuthURL     string // github oauth url
+		ClientID     string // github client id
+		ClientSecret string // github client secret
+	}
+
+	// ---------- owt ----------
+	OWT struct {
+		URL          string // owt api地址 例如： https://xx.xx.xx.xx:3000/v1
+		ServiceID    string // owt的服务ID
+		ServiceKey   string // owt的服务key （用户访问后台的api）
+		RoomMaxCount int    // 房间最大参与人数
+	}
+	Register struct {
+		Off           bool // 是否关闭注册
+		OnlyChina     bool // 是否仅仅中国手机号可以注册
+		StickerAddOff bool // 是否关闭注册添加表情
 	}
 
 	// ---------- push ----------
 	Push struct {
-		ContentDetailOn bool     //  推送是否显示正文详情(如果为false，则只显示“您有一条新的消息” 默认为true)
+		ContentDetailOn bool     // 推送是否显示正文详情(如果为false，则只显示“您有一条新的消息” 默认为true)
 		PushPoolSize    int64    // 推送任务池大小
 		APNS            APNSPush // 苹果推送
 		MI              MIPush   // 小米推送
@@ -114,15 +183,36 @@ type Config struct {
 		OPPO            OPPOPush // oppo推送
 	}
 
-	// ---------- 文件服务 ----------
+	// ---------- wechat ----------
+	Wechat struct {
+		AppID     string // 微信appid 在开放平台内
+		AppSecret string
+	}
 
-	FileService FileService   // 文件服务
-	OSS         OSSConfig     // 阿里云oss配置
-	Minio       MinioConfig   // minio配置
-	Seaweed     SeaweedConfig // seaweedfs配置
+	// ---------- tracing ----------
+	Tracing struct {
+		On   bool   // 是否开启tracing
+		Addr string // tracer的地址
+	}
 
-	TimingWheelTick duration // The time-round training interval must be 1ms or more
-	TimingWheelSize int64    // Time wheel size
+	// ---------- support ----------
+	Support struct {
+		Email     string // 技术支持的邮箱地址
+		EmailSmtp string // 技术支持的邮箱的smtp
+		EmailPwd  string // 邮箱密码
+	}
+
+	// ---------- 其他 ----------
+	Test bool // 是否是测试模式
+
+	QRCodeInfoURL    string   // 获取二维码信息的URL
+	VisitorUIDPrefix string   // 访客uid的前缀
+	TimingWheelTick  duration // The time-round training interval must be 1ms or more
+	TimingWheelSize  int64    // Time wheel size
+
+	// ---------- 系统配置  由系统生成,无需用户配置 ----------
+	AppRSAPrivateKey string
+	AppRSAPubKey     string
 }
 
 func New() *Config {
@@ -251,7 +341,7 @@ type AliyunSMSConfig struct {
 // aliyun oss
 type OSSConfig struct {
 	Endpoint        string
-	BucketName      string // Bucket名称 比如 tangsengdaodao
+	BucketName      string // Bucket名称
 	BucketURL       string // 文件下载地址域名 对应aliyun的Bucket域名
 	AccessKeyID     string
 	AccessKeySecret string
@@ -259,8 +349,8 @@ type OSSConfig struct {
 
 type MinioConfig struct {
 	URL             string // 文件下载上传基地址 例如： http://127.0.0.1:9000
-	AccessKeyID     string //minio accessKeyID
-	SecretAccessKey string //minio secretAccessKey
+	AccessKeyID     string // minio accessKeyID
+	SecretAccessKey string // minio secretAccessKey
 }
 
 type SeaweedConfig struct {
