@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/CanftIn/gothafoss/lib/im/common"
-	"github.com/CanftIn/gothafoss/lib/network"
-	"github.com/CanftIn/gothafoss/lib/util"
+	"github.com/CanftIn/gothafoss/pkg/im/common"
+	"github.com/CanftIn/gothafoss/pkg/network"
+	"github.com/CanftIn/gothafoss/pkg/util"
 	"github.com/sendgrid/rest"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"

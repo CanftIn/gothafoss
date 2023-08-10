@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	imlog "github.com/CanftIn/gothafoss/lib/log"
-	"github.com/CanftIn/gothafoss/lib/util"
+	imlog "github.com/CanftIn/gothafoss/pkg/log"
+	"github.com/CanftIn/gothafoss/pkg/util"
 	"go.uber.org/zap"
 )
 

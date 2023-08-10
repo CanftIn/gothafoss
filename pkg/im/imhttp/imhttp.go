@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/CanftIn/gothafoss/lib/cache"
-	"github.com/CanftIn/gothafoss/lib/log"
+	"github.com/CanftIn/gothafoss/pkg/cache"
+	"github.com/CanftIn/gothafoss/pkg/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/CanftIn/gothafoss/lib/im/imhttp"
-	"github.com/CanftIn/gothafoss/lib/im/model"
+	"github.com/CanftIn/gothafoss/pkg/im/imhttp"
+	"github.com/CanftIn/gothafoss/pkg/im/model"
 )
 
 // APIRouter api路由者

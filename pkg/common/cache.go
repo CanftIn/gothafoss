@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CanftIn/gothafoss/lib/redis"
+	"github.com/CanftIn/gothafoss/pkg/redis"
 )
 
 type RedisCache struct {

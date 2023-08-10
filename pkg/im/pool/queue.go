@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"sync"
 
-	queue "github.com/CanftIn/gothafoss/lib/im/pool/internal"
+	queue "github.com/CanftIn/gothafoss/pkg/im/pool/internal"
 )
 
 type Queue struct {

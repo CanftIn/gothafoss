@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/CanftIn/gothafoss/lib/im/config"
-	"github.com/CanftIn/gothafoss/lib/im/register"
+	"github.com/CanftIn/gothafoss/pkg/im/config"
+	"github.com/CanftIn/gothafoss/pkg/im/register"
 	"github.com/gocraft/dbr/v2"
 	migrate "github.com/rubenv/sql-migrate"
 )

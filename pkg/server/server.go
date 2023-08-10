@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/CanftIn/gothafoss/lib/im/config"
-	"github.com/CanftIn/gothafoss/lib/im/imhttp"
-	"github.com/CanftIn/gothafoss/lib/im/module"
-	"github.com/CanftIn/gothafoss/lib/im/register"
-	"github.com/CanftIn/gothafoss/lib/log"
+	"github.com/CanftIn/gothafoss/pkg/im/config"
+	"github.com/CanftIn/gothafoss/pkg/im/imhttp"
+	"github.com/CanftIn/gothafoss/pkg/im/module"
+	"github.com/CanftIn/gothafoss/pkg/im/register"
+	"github.com/CanftIn/gothafoss/pkg/log"
 
 	"github.com/unrolled/secure"
 )

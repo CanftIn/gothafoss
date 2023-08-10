@@ -1,6 +1,6 @@
 package model
 
-import "github.com/CanftIn/gothafoss/lib/im/config"
+import "github.com/CanftIn/gothafoss/pkg/im/config"
 
 type ChannelResp struct {
 	Channel struct {

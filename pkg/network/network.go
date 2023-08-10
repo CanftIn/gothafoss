@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/CanftIn/gothafoss/lib/util"
+	"github.com/CanftIn/gothafoss/pkg/util"
 	"github.com/sendgrid/rest"
 )
 
