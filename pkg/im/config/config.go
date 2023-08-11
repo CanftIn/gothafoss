@@ -218,6 +218,10 @@ type Config struct {
 	TimingWheelTick  duration // The time-round training interval must be 1ms or more
 	TimingWheelSize  int64    // Time wheel size
 
+	ElasticsearchURL string // elasticsearch 地址
+
+	TablePartitionConfig TablePartitionConfig
+
 	// ---------- 系统配置  由系统生成,无需用户配置 ----------
 	AppRSAPrivateKey string
 	AppRSAPubKey     string
