@@ -1,8 +1,16 @@
 package config
 
 import (
+	"fmt"
+	"hash/crc32"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/CanftIn/gothafoss/pkg/util"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"go.uber.org/zap/zapcore"
 )
@@ -319,6 +327,213 @@ func New() *Config {
 		TimingWheelSize: 100,
 	}
 	return cfg
+}
+
+func (c *Config) ConfigFileUsed() string {
+	return c.vp.ConfigFileUsed()
+}
+
+func (c *Config) configureLog() {
+	logLevel := c.vp.GetInt("logger.level")
+	// level
+	if logLevel == 0 { // 没有设置
+		if c.Mode == DebugMode {
+			logLevel = int(zapcore.DebugLevel)
+		} else {
+			logLevel = int(zapcore.InfoLevel)
+		}
+	} else {
+		logLevel = logLevel - 2
+	}
+	c.Logger.Level = zapcore.Level(logLevel)
+	c.Logger.Dir = c.vp.GetString("logger.dir")
+	if strings.TrimSpace(c.Logger.Dir) == "" {
+		c.Logger.Dir = "logs"
+	}
+	if !strings.HasPrefix(strings.TrimSpace(c.Logger.Dir), "/") {
+		c.Logger.Dir = filepath.Join(c.RootDir, c.Logger.Dir)
+	}
+	c.Logger.LineNum = c.vp.GetBool("logger.lineNum")
+}
+
+func (c *Config) getString(key string, defaultValue string) string {
+	v := c.vp.GetString(key)
+	if v == "" {
+		return defaultValue
+	}
+	return v
+}
+
+func (c *Config) getBool(key string, defaultValue bool) bool {
+	objV := c.vp.Get(key)
+	if objV == nil {
+		return defaultValue
+	}
+	return cast.ToBool(objV)
+}
+func (c *Config) getInt(key string, defaultValue int) int {
+	v := c.vp.GetInt(key)
+	if v == 0 {
+		return defaultValue
+	}
+	return v
+}
+
+func (c *Config) getInt64(key string, defaultValue int64) int64 {
+	v := c.vp.GetInt64(key)
+	if v == 0 {
+		return defaultValue
+	}
+	return v
+}
+
+func (c *Config) getDuration(key string, defaultValue time.Duration) time.Duration {
+	v := c.vp.GetDuration(key)
+	if v == 0 {
+		return defaultValue
+	}
+	return v
+}
+
+// GetAvatarPath 获取用户头像path
+func (c *Config) GetAvatarPath(uid string) string {
+	return fmt.Sprintf("users/%s/avatar", uid)
+}
+
+// GetGroupAvatarFilePath 获取群头像上传路径
+func (c *Config) GetGroupAvatarFilePath(groupNo string) string {
+	avatarID := crc32.ChecksumIEEE([]byte(groupNo)) % uint32(c.Avatar.Partition)
+	return fmt.Sprintf("group/%d/%s.png", avatarID, groupNo)
+}
+
+// GetCommunityAvatarFilePath 获取社区头像上传路径
+func (c *Config) GetCommunityAvatarFilePath(communityNo string) string {
+	avatarID := crc32.ChecksumIEEE([]byte(communityNo)) % uint32(c.Avatar.Partition)
+	return fmt.Sprintf("community/%d/%s.png", avatarID, communityNo)
+}
+
+// GetCommunityCoverFilePath 获取社区封面上传路径
+func (c *Config) GetCommunityCoverFilePath(communityNo string) string {
+	avatarID := crc32.ChecksumIEEE([]byte(communityNo)) % uint32(c.Avatar.Partition)
+	return fmt.Sprintf("community/%d/%s_cover.png", avatarID, communityNo)
+}
+
+// IsVisitorChannel 是访客频道
+func (c *Config) IsVisitorChannel(uid string) bool {
+
+	return strings.HasSuffix(uid, "@ht")
+}
+
+// 获取客服频道真实ID
+func (c *Config) GetCustomerServiceChannelID(channelID string) (string, bool) {
+	if !strings.Contains(channelID, "|") {
+		return "", false
+	}
+	channelIDs := strings.Split(channelID, "|")
+	return channelIDs[1], true
+}
+
+// 获取客服频道的访客id
+func (c *Config) GetCustomerServiceVisitorUID(channelID string) (string, bool) {
+	if !strings.Contains(channelID, "|") {
+		return "", false
+	}
+	channelIDs := strings.Split(channelID, "|")
+	return channelIDs[0], true
+}
+
+// 组合客服ID
+func (c *Config) ComposeCustomerServiceChannelID(vid string, channelID string) string {
+	return fmt.Sprintf("%s|%s", vid, channelID)
+}
+
+// IsVisitor 是访客uid
+func (c *Config) IsVisitor(uid string) bool {
+
+	return strings.HasPrefix(uid, c.VisitorUIDPrefix)
+}
+
+// GetEnv 成环境变量里获取
+func GetEnv(key string, defaultValue string) string {
+	v := os.Getenv(key)
+	if strings.TrimSpace(v) == "" {
+		return defaultValue
+	}
+	return v
+}
+
+// GetEnvBool 成环境变量里获取
+func GetEnvBool(key string, defaultValue bool) bool {
+	v := os.Getenv(key)
+	if strings.TrimSpace(v) == "" {
+		return defaultValue
+	}
+	if v == "true" {
+		return true
+	}
+	return false
+}
+
+// GetEnvInt64 环境变量获取
+func GetEnvInt64(key string, defaultValue int64) int64 {
+	v := os.Getenv(key)
+	if strings.TrimSpace(v) == "" {
+		return defaultValue
+	}
+	i, _ := strconv.ParseInt(v, 10, 64)
+	return i
+}
+
+// GetEnvInt 环境变量获取
+func GetEnvInt(key string, defaultValue int) int {
+	v := os.Getenv(key)
+	if strings.TrimSpace(v) == "" {
+		return defaultValue
+	}
+	i, _ := strconv.ParseInt(v, 10, 64)
+	return int(i)
+}
+
+// GetEnvFloat64 环境变量获取
+func GetEnvFloat64(key string, defaultValue float64) float64 {
+	v := os.Getenv(key)
+	if strings.TrimSpace(v) == "" {
+		return defaultValue
+	}
+	i, _ := strconv.ParseFloat(v, 64)
+	return i
+}
+
+// StringEnv StringEnv
+func StringEnv(v *string, key string) {
+	vv := os.Getenv(key)
+	if vv != "" {
+		*v = vv
+	}
+}
+
+// BoolEnv 环境bool值
+func BoolEnv(b *bool, key string) {
+	value := os.Getenv(key)
+	if strings.TrimSpace(value) != "" {
+		if value == "true" {
+			*b = true
+		} else {
+			*b = false
+		}
+	}
+}
+
+// 获取内网地址
+func getIntranetIP() string {
+	intranetIPs, err := util.GetIntranetIP()
+	if err != nil {
+		panic(err)
+	}
+	if len(intranetIPs) > 0 {
+		return intranetIPs[0]
+	}
+	return ""
 }
 
 // SMSProvider 短信供应者
