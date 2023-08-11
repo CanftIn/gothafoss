@@ -1,9 +1,15 @@
 package event
 
 import (
+	"fmt"
+
 	"github.com/CanftIn/gothafoss/pkg/im/config"
+	et "github.com/CanftIn/gothafoss/pkg/im/imevent"
 	"github.com/CanftIn/gothafoss/pkg/log"
+	"github.com/CanftIn/gothafoss/pkg/util"
 	"github.com/CanftIn/gothafoss/server/modules/file"
+	"github.com/gocraft/dbr/v2"
+	"go.uber.org/zap"
 )
 
 const (
@@ -51,4 +57,85 @@ type Event struct {
 	ctx *config.Context
 	log.Log
 	fileService file.IService
+}
+
+// New 创建一个事件
+func New(ctx *config.Context) *Event {
+	e := &Event{
+		ctx:         ctx,
+		db:          NewDB(ctx.DB()),
+		Log:         log.NewTLog("Event"),
+		fileService: file.NewService(ctx),
+	}
+	e.registerHandlers()
+	return e
+}
+
+// Begin 开启事件
+func (e *Event) Begin(data *et.Data, tx *dbr.Tx) (int64, error) {
+	// if !e.Support(data.Type.Int()) {
+	// 	e.Error("不支持的事件类型！", zap.Int("eventType", data.Type.Int()))
+	// 	return 0, errors.New("不支持的事件类型！")
+	// }
+	eventID, err := e.db.InsertTx(&Model{
+		Event: data.Event,
+		Type:  data.Type.Int(),
+		Data:  util.ToJson(data.Data),
+	}, tx)
+	return eventID, err
+}
+
+// Commit 提交事件
+func (e *Event) Commit(eventID int64) {
+
+	eventModel, err := e.db.QueryWithID(eventID)
+	if err != nil {
+		e.Error("查询事件失败！", zap.Error(err), zap.Int64("eventID", eventID))
+		return
+	}
+	// if !e.Support(eventModel.Type) {
+	// 	e.Error("不支持的事件类型！", zap.Int("eventType", eventModel.Type))
+	// 	return
+	// }
+
+	e.handleEvent(eventModel)
+
+}
+
+// Support 是否支持的事件类型
+func (e *Event) Support(typ int) bool {
+	switch typ {
+	case et.Message.Int():
+		return true
+	}
+	return false
+}
+
+func (e *Event) updateEventStatus(err error, versionLock int64, eventID int64) {
+	var reason string
+	var status = et.Success
+	if err != nil {
+		e.Warn("执行事件失败！", zap.Error(err), zap.Int64("eventID", eventID))
+		reason = fmt.Sprintf("执行事件失败！-> %v", err)
+		status = et.Fail
+	}
+	err = e.db.UpdateStatus(reason, status.Int(), versionLock, eventID)
+	if err != nil {
+		e.Error("更新事件状态失败！", zap.Int64("eventID", eventID), zap.Error(err))
+		return
+	}
+}
+
+// EventTimerPush 定时发布事件
+func (e *Event) EventTimerPush() {
+	models, err := e.db.QueryAllWait(1000)
+	if err != nil {
+		e.Error("查询所有待发布的事件失败！", zap.Error(err))
+		return
+	}
+	if len(models) > 0 {
+		for _, model := range models {
+			e.handleEvent(model)
+		}
+	}
 }
