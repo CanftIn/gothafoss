@@ -15,6 +15,7 @@ import (
 	"github.com/CanftIn/gothafoss/pkg/redis"
 	"github.com/RussellLuo/timingwheel"
 	"github.com/gocraft/dbr/v2"
+	"github.com/opentracing/opentracing-go"
 )
 
 type Context struct {
@@ -27,6 +28,7 @@ type Context struct {
 	Event        imevent.Event
 	timingWheel  *timingwheel.TimingWheel // Time wheel delay task
 	httpRouter   *imhttp.IMHttp
+	tracer       *Tracer // 调用链追踪
 
 	log.Log
 	valueMap sync.Map
@@ -42,6 +44,12 @@ func NewContext(cfg *Config) *Context {
 		timingWheel: timingwheel.NewTimingWheel(cfg.TimingWheelTick.Duration, cfg.TimingWheelSize),
 		valueMap:    sync.Map{},
 	}
+	err := error(nil)
+	c.tracer, err = NewTracer(cfg)
+	if err != nil {
+		panic(err)
+	}
+	opentracing.SetGlobalTracer(c.tracer)
 	c.timingWheel.Start()
 	return c
 }
@@ -58,6 +66,10 @@ func (c *Context) NewMySQL() *dbr.Session {
 	}
 
 	return c.mysqlSession
+}
+
+func (c *Context) Tracer() *Tracer {
+	return c.tracer
 }
 
 func (c *Context) DB() *dbr.Session {

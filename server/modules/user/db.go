@@ -6,7 +6,7 @@ import (
 	"github.com/CanftIn/gothafoss/pkg/db"
 	"github.com/CanftIn/gothafoss/pkg/im/config"
 	"github.com/CanftIn/gothafoss/pkg/util"
-	"github.com/gocraft/dbr"
+	"github.com/gocraft/dbr/v2"
 )
 
 // DB 用户db操作
