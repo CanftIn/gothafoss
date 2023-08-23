@@ -180,6 +180,11 @@ func (imHttp *IMHttp) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	imHttp.engine.ServeHTTP(w, req)
 }
 
+// Group Group
+func (imHttp *IMHttp) Group(relativePath string, handlers ...HandlerFunc) *RouterGroup {
+	return newRouterGroup(imHttp.engine.Group(relativePath, imHttp.handlersToGinHandleFuncs(handlers)...), imHttp)
+}
+
 // HandleContext HandleContext
 func (imHttp *IMHttp) HandleContext(c *Context) {
 	imHttp.engine.HandleContext(c.Context)

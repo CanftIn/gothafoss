@@ -17,7 +17,7 @@ const (
 	ChannelTypeNone ChannelType = iota
 	// ChannelTypePerson 个人频道
 	ChannelTypePerson
-	// ChannelTypeGroup           群频道
+	// ChannelTypeGroup 群频道
 	ChannelTypeGroup
 	// ChannelTypeCustomerService 客服频道
 	ChannelTypeCustomerService
@@ -25,7 +25,7 @@ const (
 	ChannelTypeCommunity
 	// ChannelTypeCommunityTopic 话题
 	ChannelTypeCommunityTopic
-	//  ChannelTypeInfo 资讯类频道
+	// ChannelTypeInfo 资讯类频道
 	ChannelTypeInfo
 )
 
